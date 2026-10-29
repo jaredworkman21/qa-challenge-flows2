@@ -29,9 +29,6 @@ body { background: var(--bg); color: var(--ink); font-size: 14px; }
 .btn.small { padding: 4px 9px; font-size: 13px; }
 .btn:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .kind { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-.linear { max-width: 760px; width: 100%; margin: 0 auto; padding: 20px 16px 60px; display: grid; gap: 14px; overflow: auto; }
-.screen-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; gap: 10px; }
-.screen-head { display: flex; align-items: center; gap: 6px; }
 .field { display: grid; gap: 4px; }
 .field > span { font-size: 12px; font-weight: 600; color: var(--muted); }
 input, textarea, select { font: inherit; border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; background: var(--surface); color: var(--ink); width: 100%; }
@@ -39,7 +36,6 @@ input, textarea, select { font: inherit; border: 1px solid var(--line); border-r
 .choice-row { display: flex; gap: 8px; align-items: center; }
 .check { display: flex; align-items: center; gap: 5px; white-space: nowrap; font-size: 13px; }
 .check input { width: auto; }
-.add-row { display: flex; gap: 8px; }
 .overlay { position: fixed; inset: 0; background: rgba(20, 24, 36, .45); display: grid; place-items: center; padding: 16px; z-index: 50; }
 .player { background: var(--surface); border-radius: 14px; width: min(560px, 100%); max-height: 90vh; overflow: auto; }
 .player-head { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
@@ -49,3 +45,34 @@ input, textarea, select { font: inherit; border: 1px solid var(--line); border-r
 .answers { display: grid; gap: 8px; }
 .btn.answer { text-align: left; padding: 11px 14px; }
 .player-nav { display: flex; justify-content: space-between; }
+.toolbar { display: flex; gap: 6px; margin-left: 12px; }
+.workspace { flex: 1; display: flex; min-height: 0; }
+.canvas { flex: 1; min-width: 0; }
+.side { width: 320px; flex: none; border-left: 1px solid var(--line); background: var(--surface); overflow: auto; }
+.panel-section { padding: 16px; display: grid; gap: 12px; border-bottom: 1px solid var(--line); }
+.panel-section.empty p { margin: 0; }
+.panel-head { display: flex; align-items: center; gap: 8px; }
+.count { background: var(--warn-soft); color: var(--warn); border-radius: 999px; padding: 1px 8px; font-size: 12px; font-weight: 600; }
+.hint { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+.ok { margin: 0; color: var(--ok); }
+.error { margin: 0; color: var(--danger); }
+.issues { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.issue { width: 100%; text-align: left; font: inherit; background: var(--warn-soft); border: 0; border-radius: 8px; padding: 8px 10px; display: grid; gap: 2px; cursor: pointer; color: var(--ink); }
+.issue strong { font-size: 13px; }
+.issue span { font-size: 12px; color: var(--warn); }
+.node { width: 220px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; gap: 6px; box-shadow: 0 1px 2px rgba(20,24,36,.06); }
+.react-flow__node.selected .node { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.node.has-issue { border-color: #e2a33c; }
+.node.is-start { border-width: 2px; }
+.node-head { display: flex; align-items: center; gap: 6px; }
+.start-pill { background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; border-radius: 999px; padding: 1px 7px; text-transform: uppercase; letter-spacing: .05em; }
+.node-title { font-weight: 600; white-space: nowrap; }
+.node-body { color: var(--muted); font-size: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.node-out { position: relative; font-size: 12px; background: var(--bg); border-radius: 6px; padding: 5px 14px 5px 8px; }
+.node-out .is-correct::after { content: " ✓"; color: var(--ok); font-weight: 700; }
+.react-flow__handle { width: 10px; height: 10px; background: var(--accent); border: 2px solid #fff; }
+.dialog { background: var(--surface); border-radius: 14px; width: min(560px, 100%); max-height: 90vh; overflow: auto; }
+.dialog-body { padding: 16px 18px 20px; display: grid; gap: 10px; }
+.dialog-body textarea { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+.score { font-weight: 600; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: 9px 16px; border-radius: 8px; z-index: 60; }
