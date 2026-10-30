@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Choice, FlowLesson } from "../types";
 import { choiceHandle } from "../flow/ids";
+import * as Path from "./path";
 
 interface Props {
   lesson: FlowLesson;
@@ -10,26 +11,19 @@ interface Props {
 const FINISHED = "__finished";
 
 export default function FlowPlayer({ lesson, onClose }: Props) {
-  const [currentId, setCurrentId] = useState(lesson.startId);
-  const [correct, setCorrect] = useState(0);
+  const [path, setPath] = useState(() => Path.start(lesson.startId));
+  const currentId = Path.current(path);
   const node = lesson.nodes.find((n) => n.id === currentId);
-  const order = lesson.nodes.map((n) => n.id);
-  const questionCount = lesson.nodes.filter((n) => n.data.kind === "question").length;
+  const { correct, answered } = Path.score(path);
+  const canGoBack = path.length > 1;
 
-  const go = (target?: string) => setCurrentId(target ?? FINISHED);
+  const go = (target?: string, wasCorrect?: boolean) =>
+    setPath((p) => Path.advance(p, target ?? FINISHED, wasCorrect));
   const next = () => go(lesson.edges.find((e) => e.source === currentId)?.target);
-  const answer = (choice: Choice, index: number) => {
-    if (choice.correct) setCorrect((n) => n + 1);
-    go(lesson.edges.find((e) => e.source === currentId && e.sourceHandle === choiceHandle(index))?.target);
-  };
-  const back = () => {
-    const i = order.indexOf(currentId);
-    if (i > 0) setCurrentId(order[i - 1]);
-  };
-  const restart = () => {
-    setCurrentId(lesson.startId);
-    setCorrect(0);
-  };
+  const answer = (choice: Choice, index: number) =>
+    go(lesson.edges.find((e) => e.source === currentId && e.sourceHandle === choiceHandle(index))?.target, choice.correct);
+  const back = () => setPath(Path.back);
+  const restart = () => setPath(Path.start(lesson.startId));
 
   let content: React.ReactNode;
   if (currentId === FINISHED || node?.data.kind === "end") {
@@ -37,8 +31,8 @@ export default function FlowPlayer({ lesson, onClose }: Props) {
       <>
         <h2>{node?.data.title ?? "End of lesson"}</h2>
         {node?.data.body && <p>{node.data.body}</p>}
-        {questionCount > 0 && (
-          <p className="score">You answered {correct} of {questionCount} questions correctly.</p>
+        {answered > 0 && (
+          <p className="score">You answered {correct} of {answered} questions correctly.</p>
         )}
         <div className="player-nav">
           <span />
@@ -69,7 +63,7 @@ export default function FlowPlayer({ lesson, onClose }: Props) {
           ))}
         </div>
         <div className="player-nav">
-          <button className="btn" disabled={currentId === lesson.startId} onClick={back}>Back</button>
+          <button className="btn" disabled={!canGoBack} onClick={back}>Back</button>
           <span />
         </div>
       </>
@@ -80,7 +74,7 @@ export default function FlowPlayer({ lesson, onClose }: Props) {
         <h2>{node.data.title}</h2>
         <p>{node.data.body}</p>
         <div className="player-nav">
-          <button className="btn" disabled={currentId === lesson.startId} onClick={back}>Back</button>
+          <button className="btn" disabled={!canGoBack} onClick={back}>Back</button>
           <button className="btn primary" onClick={next}>Continue</button>
         </div>
       </>
