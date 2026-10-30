@@ -6,20 +6,35 @@ export interface Issue {
   message: string;
 }
 
+function reachableFrom(startId: string, edges: FlowLesson["edges"]): Set<string> {
+  const seen = new Set<string>([startId]);
+  const queue = [startId];
+  while (queue.length) {
+    const id = queue.shift()!;
+    for (const e of edges) {
+      if (e.source === id && !seen.has(e.target)) {
+        seen.add(e.target);
+        queue.push(e.target);
+      }
+    }
+  }
+  return seen;
+}
+
 export function validate(lesson: Pick<FlowLesson, "startId" | "nodes" | "edges">): Issue[] {
   const issues: Issue[] = [];
-  const hasIncoming = new Set(lesson.edges.map((e) => e.target));
+  const reachable = reachableFrom(lesson.startId, lesson.edges);
 
   for (const node of lesson.nodes) {
     const { data } = node;
     const outgoing = lesson.edges.filter((e) => e.source === node.id);
 
-    if (data.title === undefined) {
+    if (!data.title?.trim()) {
       issues.push({ nodeId: node.id, message: "Every screen needs a title." });
     }
 
-    if (node.id !== lesson.startId && !hasIncoming.has(node.id)) {
-      issues.push({ nodeId: node.id, message: "This screen can't be reached from the the start screen." });
+    if (!reachable.has(node.id)) {
+      issues.push({ nodeId: node.id, message: "This screen can't be reached from the start screen." });
     }
 
     if (data.kind === "content" && outgoing.length === 0) {
@@ -36,7 +51,7 @@ export function validate(lesson: Pick<FlowLesson, "startId" | "nodes" | "edges">
       }
       const connected = new Set(outgoing.map((e) => e.sourceHandle));
       const missing = choices.findIndex((_, i) => !connected.has(choiceHandle(i)));
-      if (missing > 0) {
+      if (missing !== -1) {
         issues.push({ nodeId: node.id, message: `Answer ${missing + 1} doesn't lead anywhere yet.` });
       }
     }
