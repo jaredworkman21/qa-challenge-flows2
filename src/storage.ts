@@ -1,6 +1,8 @@
-import type { LinearLesson } from "./types";
+import type { FlowLesson, LinearLesson } from "./types";
+import { linearToFlow } from "./flow/migrate";
 
 export const LINEAR_KEY = "pathways.lesson.v1";
+export const FLOW_KEY = "pathways.lesson.v2";
 
 export const sampleLesson: LinearLesson = {
   title: "Opening Shift",
@@ -37,9 +39,20 @@ export function loadLinear(): LinearLesson {
   return sampleLesson;
 }
 
-export function saveLinear(lesson: LinearLesson) {
+export function loadFlow(): FlowLesson {
   try {
-    localStorage.setItem(LINEAR_KEY, JSON.stringify(lesson));
+    const raw = localStorage.getItem(FLOW_KEY);
+    if (raw) return JSON.parse(raw) as FlowLesson;
+  } catch {
+    // fall through to migration
+  }
+  return linearToFlow(loadLinear());
+}
+
+export function saveFlow(lesson: FlowLesson) {
+  console.log("[pathways] saved lesson", lesson);
+  try {
+    localStorage.setItem(FLOW_KEY, JSON.stringify(lesson));
   } catch {
     // storage unavailable
   }
