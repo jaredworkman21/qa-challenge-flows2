@@ -50,7 +50,6 @@ export function loadFlow(): FlowLesson {
 }
 
 export function saveFlow(lesson: FlowLesson) {
-  console.log("[pathways] saved lesson", lesson);
   try {
     localStorage.setItem(FLOW_KEY, JSON.stringify(lesson));
   } catch {
