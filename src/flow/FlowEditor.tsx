@@ -4,7 +4,6 @@ import {
   Controls,
   MarkerType,
   ReactFlow,
-  addEdge,
   applyEdgeChanges,
   applyNodeChanges,
   type Connection,
@@ -19,6 +18,7 @@ import { nodeTypes } from "./nodes";
 import { FlowMetaContext } from "./context";
 import { answerId, screenId } from "./ids";
 import { validate } from "./validation";
+import { connect, isValidConnection, removeChoiceEdges, removeNodeEdges } from "./graph";
 import NodePanel from "./NodePanel";
 import ShareDialog from "./ShareDialog";
 import FlowPlayer from "../player/FlowPlayer";
@@ -39,7 +39,7 @@ const defaults: Record<ScreenKind, () => ScreenData> = {
 
 export default function FlowEditor() {
   const initial = useMemo(loadFlow, []);
-  const [title] = useState(initial.title);
+  const [title, setTitle] = useState(initial.title);
   const [startId, setStartId] = useState(initial.startId);
   const [nodes, setNodes] = useState<ScreenNode[]>(initial.nodes);
   const [edges, setEdges] = useState<Edge[]>(initial.edges);
@@ -53,10 +53,11 @@ export default function FlowEditor() {
   const issueIds = useMemo(() => new Set(issues.map((i) => i.nodeId)), [issues]);
   const selected = nodes.find((n) => n.id === selectedId);
 
-  const dataKey = JSON.stringify(nodes.map((n) => [n.id, n.data]));
+  // Positions are part of the key so the canvas layout is saved too.
+  const dataKey = JSON.stringify(nodes.map((n) => [n.id, n.position, n.data]));
   useEffect(() => {
     saveFlow({ title, startId, nodes, edges });
-  }, [dataKey, edges, startId]);
+  }, [dataKey, edges, startId, title]);
 
   useEffect(() => {
     if (!toast) return;
@@ -69,12 +70,7 @@ export default function FlowEditor() {
     []
   );
   const onEdgesChange = useCallback((changes: EdgeChange[]) => setEdges((es) => applyEdgeChanges(changes, es)), []);
-  const onConnect = useCallback(
-    (c: Connection) =>
-      setEdges((es) => addEdge(c, es.filter((e) => !(e.source === c.source && e.target === c.target)))),
-    []
-  );
-  const isValidConnection = useCallback((c: Connection | Edge) => c.source !== c.sourceHandle, []);
+  const onConnect = useCallback((c: Connection) => setEdges((es) => connect(es, c)), []);
 
   const addScreen = (kind: ScreenKind) => {
     const id = screenId();
@@ -88,12 +84,24 @@ export default function FlowEditor() {
   const updateNode = (id: string, patch: Partial<ScreenData>) =>
     setNodes((ns) => ns.map((n) => (n.id === id ? { ...n, data: { ...n.data, ...patch } } : n)));
 
+  const removeChoice = (id: string, index: number) => {
+    setNodes((ns) =>
+      ns.map((n) =>
+        n.id === id ? { ...n, data: { ...n.data, choices: n.data.choices?.filter((_, i) => i !== index) } } : n
+      )
+    );
+    setEdges((es) => removeChoiceEdges(es, id, index));
+  };
+
   const deleteNode = (id: string) => {
+    if (id === startId) return;
     setNodes((ns) => ns.filter((n) => n.id !== id));
+    setEdges((es) => removeNodeEdges(es, id));
     setSelectedId(null);
   };
 
   const importLesson = (next: FlowLesson) => {
+    setTitle(next.title);
     setNodes(next.nodes);
     setEdges(next.edges);
     setStartId(next.startId);
@@ -146,9 +154,11 @@ export default function FlowEditor() {
           <aside className="side">
             {selected ? (
               <NodePanel
+                key={selected.id}
                 node={selected}
                 isStart={selected.id === startId}
                 onChange={(patch) => updateNode(selected.id, patch)}
+                onRemoveChoice={(index) => removeChoice(selected.id, index)}
                 onDelete={() => deleteNode(selected.id)}
               />
             ) : (

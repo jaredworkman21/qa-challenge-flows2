@@ -2,16 +2,17 @@ import { useState } from "react";
 import type { Choice, ScreenData, ScreenNode } from "../types";
 import { answerId } from "./ids";
 
-export const MAX_CHOICES = 4;
+export const MAX_CHOICES = 6;
 
 interface Props {
   node: ScreenNode;
   isStart: boolean;
   onChange: (patch: Partial<ScreenData>) => void;
+  onRemoveChoice: (index: number) => void;
   onDelete: () => void;
 }
 
-export default function NodePanel({ node, isStart, onChange, onDelete }: Props) {
+export default function NodePanel({ node, isStart, onChange, onRemoveChoice, onDelete }: Props) {
   const [title, setTitle] = useState(node.data.title);
   const [body, setBody] = useState(node.data.body);
   const choices = node.data.choices ?? [];
@@ -51,7 +52,7 @@ export default function NodePanel({ node, isStart, onChange, onDelete }: Props) 
       {isQuestion && (
         <div className="field">
           <span>Answers</span>
-          {choices.map((c) => (
+          {choices.map((c, i) => (
             <div className="choice-row" key={c.id}>
               <input value={c.text} onChange={(e) => setChoice(c.id, { text: e.target.value })} aria-label="Answer text" />
               <label className="check">
@@ -62,7 +63,7 @@ export default function NodePanel({ node, isStart, onChange, onDelete }: Props) 
                 className="btn small"
                 aria-label="Remove answer"
                 disabled={choices.length <= 2}
-                onClick={() => onChange({ choices: choices.filter((x) => x.id !== c.id) })}
+                onClick={() => onRemoveChoice(i)}
               >
                 ✕
               </button>
@@ -75,7 +76,7 @@ export default function NodePanel({ node, isStart, onChange, onDelete }: Props) 
           >
             Add answer
           </button>
-          <p className="hint">Drag from the dot next to an answer to choose where it leads too.</p>
+          <p className="hint">Drag from the dot next to an answer to choose where it leads to.</p>
         </div>
       )}
       <button
